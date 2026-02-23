@@ -3,42 +3,110 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Algebra Research Tool</title>
+    <title>Ruffle Web Demo</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="ruffle.js"></script>
     <style>
-        body { background-color: #020617; color: white; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: sans-serif; }
-        #player-container { width: 95%; max-width: 1000px; height: 70vh; background: #000; border: 2px dashed #1e293b; border-radius: 1.5rem; display: flex; items-center; justify-content: center; position: relative; overflow: hidden; }
-        ruffle-player { width: 100%; height: 100%; }
+        :root {
+            --ruffle-orange: #ffad33;
+            --ruffle-blue: #31497d;
+        }
+        body { background-color: #f3f4f6; color: #1f2937; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        
+        /* The signature Ruffle Header */
+        header { background-color: var(--ruffle-blue); border-bottom: 4px solid var(--ruffle-orange); }
+        
+        /* The Player Area */
+        #player-container { 
+            background-color: #222; 
+            box-shadow: inset 0 0 50px rgba(0,0,0,0.5);
+            min-height: 500px;
+            border-radius: 8px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* Button Styling */
+        .ruffle-btn {
+            background-color: var(--ruffle-orange);
+            color: #fff;
+            padding: 10px 20px;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+        .ruffle-btn:hover { filter: brightness(1.1); }
+        .ruffle-btn:active { transform: scale(0.98); }
     </style>
 </head>
-<body class="p-4">
+<body class="min-h-screen">
 
-    <div class="text-center mb-8">
-        <h1 class="text-4xl font-black tracking-tighter uppercase text-slate-200">Flash Module Loader</h1>
-        <p class="text-slate-500 mt-2">Upload a .swf file to begin the simulation.</p>
-    </div>
-
-    <div id="player-container">
-        <div id="drop-zone" class="flex flex-col items-center">
-            <label class="bg-blue-600 hover:bg-blue-500 px-8 py-4 rounded-xl font-bold cursor-pointer transition-all shadow-lg">
-                SELECT .SWF FILE
+    <header class="p-4 shadow-lg mb-8">
+        <div class="max-w-6xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-[#ffad33] rounded-full flex items-center justify-center font-bold text-white text-xl italic">R</div>
+                <h1 class="text-white text-2xl font-bold tracking-tight">Ruffle <span class="text-[#ffad33]">Web Demo</span></h1>
+            </div>
+            <label class="ruffle-btn">
+                SELECT FILE
                 <input type="file" id="file-input" accept=".swf" class="hidden">
             </label>
         </div>
-    </div>
+    </header>
 
-    <button onclick="location.reload()" class="mt-6 text-slate-500 hover:text-white text-sm font-medium">
-        <i class="fas fa-redo mr-2"></i> Reset Player
-    </button>
+    <main class="max-w-6xl mx-auto px-4">
+        <div id="player-container">
+            <div id="overlay-text" class="text-center">
+                <p class="text-slate-400 text-lg mb-4">Click "Select File" to start playing Flash content</p>
+                <div class="opacity-20 flex justify-center">
+                     <svg width="100" height="100" viewBox="0 0 24 24" fill="white"><path d="M13 2v8h8c0-4.42-3.58-8-8-8zM11 2c-4.42 0-8 3.58-8 8v10c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V10c0-4.42-3.58-8-8-8z"/></svg>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6 text-sm text-slate-500 pb-20">
+            <div class="bg-white p-4 rounded-lg shadow-sm border-t-2 border-[#ffad33]">
+                <h3 class="font-bold text-slate-700 mb-2 uppercase">Status</h3>
+                <p id="status">Ready</p>
+            </div>
+            <div class="bg-white p-4 rounded-lg shadow-sm border-t-2 border-[#ffad33]">
+                <h3 class="font-bold text-slate-700 mb-2 uppercase">Compatibility</h3>
+                <p>ActionScript 1/2: High<br>ActionScript 3: Developing</p>
+            </div>
+            <div class="bg-white p-4 rounded-lg shadow-sm border-t-2 border-[#ffad33]">
+                <h3 class="font-bold text-slate-700 mb-2 uppercase">Local Info</h3>
+                <p>All files are processed locally. No data is sent to a server.</p>
+            </div>
+        </div>
+    </main>
 
     <script>
         const fileInput = document.getElementById('file-input');
         const container = document.getElementById('player-container');
+        const statusText = document.getElementById('status');
 
         fileInput.addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (file) {
+                statusText.innerText = "Loading " + file.name + "...";
+                
                 const reader = new FileReader();
                 reader.onload = (res) => {
-                    const ruffle
+                    const ruffle = window.RufflePlayer.newest();
+                    const player = ruffle.createPlayer();
+                    
+                    container.innerHTML = ""; 
+                    container.appendChild(player);
+                    
+                    player.load({ data: res.target.result });
+                    statusText.innerText = "Running: " + file.name;
+                };
+                reader.readAsArrayBuffer(file);
+            }
+        });
+    </script>
+</body>
+</html>
